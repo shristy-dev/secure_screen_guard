@@ -1,6 +1,3 @@
-/// secure_screen_guard
-/// Protect sensitive Flutter screens from screenshots and recording
-/// — with smart cross-platform handling.
 library secure_screen_guard;
 
 export 'src/secure_screen.dart';

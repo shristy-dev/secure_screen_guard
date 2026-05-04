@@ -19,10 +19,7 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     private var activity: Activity? = null
     private var eventSink: EventChannel.EventSink? = null
 
-    // Track current mode; used to restore state on activity changes.
     private var isEnabled = false
-
-    // ─── FlutterPlugin ────────────────────────────────────────────────────
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel = MethodChannel(
@@ -51,11 +48,8 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
         eventChannel.setStreamHandler(null)
     }
 
-    // ─── ActivityAware ────────────────────────────────────────────────────
-
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-        // Restore flag if it was enabled before an activity recreation.
         if (isEnabled) applyFlag()
     }
 
@@ -71,8 +65,6 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     override fun onDetachedFromActivity() {
         activity = null
     }
-
-    // ─── MethodCallHandler ────────────────────────────────────────────────
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
@@ -92,13 +84,10 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
                 result.success(null)
             }
             "isProtected" -> result.success(isEnabled)
-            // Android cannot natively detect if another app is recording, so always false.
             "isRecording" -> result.success(false)
             else -> result.notImplemented()
         }
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────────────
 
     private fun applyFlag() {
         activity?.runOnUiThread {
@@ -125,7 +114,6 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
                 isEnabled = false
                 clearFlag()
             }
-            // "balanced" — FLAG_SECURE is controlled per-widget by explicit enable/disable calls.
             else -> {}
         }
     }

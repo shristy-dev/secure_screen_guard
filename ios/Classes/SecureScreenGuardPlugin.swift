@@ -3,17 +3,13 @@ import UIKit
 
 public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
 
-    // ─── Channel names ─────────────────────────────────────────────────────
     private static let methodChannelName = "secure_screen_guard/methods"
     private static let eventChannelName  = "secure_screen_guard/events"
 
-    // ─── State ─────────────────────────────────────────────────────────────
     private var eventSink: FlutterEventSink?
     private var isEnabled = false
     private var wasRecording = false
     private var recordingCheckTimer: Timer?
-
-    // ─── Registration ──────────────────────────────────────────────────────
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = SecureScreenGuardPlugin()
@@ -32,8 +28,6 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
 
         registrar.addApplicationDelegate(instance)
     }
-
-    // ─── FlutterMethodCallDelegate ─────────────────────────────────────────
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
@@ -71,8 +65,6 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
         }
     }
 
-    // ─── FlutterStreamHandler ──────────────────────────────────────────────
-
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         eventSink = events
@@ -86,17 +78,9 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
         return nil
     }
 
-    // ─── App lifecycle ─────────────────────────────────────────────────────
-
-    public func applicationWillResignActive(_ application: UIApplication) {
-        // Screen goes to app-switcher — nothing special needed on iOS;
-        // FLAG_SECURE equivalent is handled per-screen on Android.
-    }
-
-    // ─── Monitoring ────────────────────────────────────────────────────────
+    public func applicationWillResignActive(_ application: UIApplication) {}
 
     private func startMonitoring() {
-        // Screenshot detection
         NotificationCenter.default.removeObserver(
             self,
             name: UIApplication.userDidTakeScreenshotNotification,
@@ -109,7 +93,6 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
             object: nil
         )
 
-        // Screen recording detection (iOS 11+): poll UIScreen.isCaptured
         if #available(iOS 11.0, *) {
             recordingCheckTimer?.invalidate()
             recordingCheckTimer = Timer.scheduledTimer(
@@ -153,8 +136,6 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
         }
     }
 
-    // ─── Mode ─────────────────────────────────────────────────────────────
-
     private func handleMode(_ mode: String) {
         switch mode {
         case "strict":
@@ -163,7 +144,7 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
         case "off":
             isEnabled = false
             stopMonitoring()
-        default: // "balanced" — controlled per-widget
+        default:
             break
         }
     }

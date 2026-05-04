@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'security_mode.dart';
 
-/// Low-level event and method channel bridge.
 class SecureScreenChannel {
   SecureScreenChannel._();
 
@@ -20,8 +19,6 @@ class SecureScreenChannel {
         .map((event) => event as String);
     return _rawEventStream!;
   }
-
-  // ─── Methods ─────────────────────────────────────────────────────────────
 
   static Future<void> enable() =>
       _methodChannel.invokeMethod('enable');
@@ -41,8 +38,6 @@ class SecureScreenChannel {
     final result = await _methodChannel.invokeMethod<bool>('isRecording');
     return result ?? false;
   }
-
-  // ─── Events ───────────────────────────────────────────────────────────────
 
   static Stream<void> get onScreenshot =>
       _events.where((e) => e == 'screenshot').map((_) {});
