@@ -1,0 +1,26 @@
+name: secure_screen_guard
+description: Protect sensitive Flutter screens from screenshots and recording — with smart cross-platform handling.
+version: 0.0.1
+homepage: https://github.com/shristy-dev/secure_screen_guard
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.securescreenguard.secure_screen_guard
+        pluginClass: SecureScreenGuardPlugin
+      ios:
+        pluginClass: SecureScreenGuardPlugin
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
