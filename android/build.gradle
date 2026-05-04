@@ -25,8 +25,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    namespace = 'com.securescreenguard.secure_screen_guard'
     compileSdk 34
+    namespace = 'com.securescreenguard.secure_screen_guard'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
