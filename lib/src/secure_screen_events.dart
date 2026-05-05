@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'secure_screen_channel.dart';
-import 'security_mode.dart';
 
 class SecureScreenEvents {
   SecureScreenEvents._();

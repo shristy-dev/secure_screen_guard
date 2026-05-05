@@ -19,7 +19,8 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     private var activity: Activity? = null
     private var eventSink: EventChannel.EventSink? = null
 
-    private var isEnabled = false
+    private var widgetProtectionEnabled = false
+    private var mode: String = "balanced"
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel = MethodChannel(
@@ -50,7 +51,7 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-        if (isEnabled) applyFlag()
+        applyProtectionState()
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -59,7 +60,7 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activity = binding.activity
-        if (isEnabled) applyFlag()
+        applyProtectionState()
     }
 
     override fun onDetachedFromActivity() {
@@ -69,23 +70,45 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "enable" -> {
-                isEnabled = true
-                applyFlag()
+                widgetProtectionEnabled = true
+                applyProtectionState()
                 result.success(null)
             }
             "disable" -> {
-                isEnabled = false
-                clearFlag()
+                widgetProtectionEnabled = false
+                applyProtectionState()
                 result.success(null)
             }
             "setMode" -> {
-                val mode = call.argument<String>("mode") ?: "balanced"
-                handleMode(mode)
+                val requestedMode = call.argument<String>("mode") ?: "balanced"
+                handleMode(requestedMode)
                 result.success(null)
             }
-            "isProtected" -> result.success(isEnabled)
+            "isProtected" -> result.success(isCurrentlyProtected())
             "isRecording" -> result.success(false)
             else -> result.notImplemented()
+        }
+    }
+
+    private fun shouldProtect(): Boolean {
+        return when (mode) {
+            "strict" -> true
+            "off" -> false
+            else -> widgetProtectionEnabled
+        }
+    }
+
+    private fun isCurrentlyProtected(): Boolean {
+        val window = activity?.window ?: return false
+        val flags = window.attributes.flags
+        return (flags and WindowManager.LayoutParams.FLAG_SECURE) != 0
+    }
+
+    private fun applyProtectionState() {
+        if (shouldProtect()) {
+            applyFlag()
+        } else {
+            clearFlag()
         }
     }
 
@@ -105,16 +128,13 @@ class SecureScreenGuardPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     }
 
     private fun handleMode(mode: String) {
-        when (mode) {
-            "strict" -> {
-                isEnabled = true
-                applyFlag()
-            }
-            "off" -> {
-                isEnabled = false
-                clearFlag()
-            }
-            else -> {}
+        this.mode = mode
+        applyProtectionState()
+    }
+
+    private fun notifyEvent(name: String) {
+        activity?.runOnUiThread {
+            eventSink?.success(name)
         }
     }
 }

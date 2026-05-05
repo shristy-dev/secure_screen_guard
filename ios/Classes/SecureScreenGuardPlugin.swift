@@ -7,7 +7,8 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     private static let eventChannelName  = "secure_screen_guard/events"
 
     private var eventSink: FlutterEventSink?
-    private var isEnabled = false
+    private var widgetProtectionEnabled = false
+    private var mode: String = "balanced"
     private var wasRecording = false
     private var recordingCheckTimer: Timer?
 
@@ -32,13 +33,13 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "enable":
-            isEnabled = true
-            startMonitoring()
+            widgetProtectionEnabled = true
+            applyProtectionState()
             result(nil)
 
         case "disable":
-            isEnabled = false
-            stopMonitoring()
+            widgetProtectionEnabled = false
+            applyProtectionState()
             result(nil)
 
         case "setMode":
@@ -51,7 +52,7 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
             result(nil)
 
         case "isProtected":
-            result(isEnabled)
+            result(shouldProtect())
 
         case "isRecording":
             if #available(iOS 11.0, *) {
@@ -68,7 +69,7 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     public func onListen(withArguments arguments: Any?,
                          eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         eventSink = events
-        if isEnabled { startMonitoring() }
+        applyProtectionState()
         return nil
     }
 
@@ -79,6 +80,25 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     }
 
     public func applicationWillResignActive(_ application: UIApplication) {}
+
+    private func shouldProtect() -> Bool {
+        switch mode {
+        case "strict":
+            return true
+        case "off":
+            return false
+        default:
+            return widgetProtectionEnabled
+        }
+    }
+
+    private func applyProtectionState() {
+        if shouldProtect() {
+            startMonitoring()
+        } else {
+            stopMonitoring()
+        }
+    }
 
     private func startMonitoring() {
         NotificationCenter.default.removeObserver(
@@ -112,6 +132,7 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
         )
         recordingCheckTimer?.invalidate()
         recordingCheckTimer = nil
+        wasRecording = false
     }
 
     @objc private func screenshotTaken() {
@@ -137,16 +158,8 @@ public class SecureScreenGuardPlugin: NSObject, FlutterPlugin, FlutterStreamHand
     }
 
     private func handleMode(_ mode: String) {
-        switch mode {
-        case "strict":
-            isEnabled = true
-            startMonitoring()
-        case "off":
-            isEnabled = false
-            stopMonitoring()
-        default:
-            break
-        }
+        self.mode = mode
+        applyProtectionState()
     }
 
     deinit {

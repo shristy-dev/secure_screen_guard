@@ -51,7 +51,7 @@ await SecureScreenGuard.setMode(SecurityMode.strict);
 | Mode | Behaviour |
 |------|-----------|
 | `strict` | Always protected — FLAG_SECURE always on (Android), always monitoring (iOS) |
-| `balanced` | Only widgets wrapped with `SecureScreen` are protected *(default)* |
+| `balanced` | Protected when `SecureScreenGuard.enable()` is active (the `SecureScreen` widget does this automatically while mounted) *(default)* |
 | `off` | Fully disabled |
 
 ### 4. Listen to events
@@ -110,11 +110,15 @@ Protection is applied via `FLAG_SECURE` on the Activity window. This:
 - Blocks content from appearing in the **app switcher preview**.
 - Works even if the user uses a third-party recorder.
 
+Note: Android does not provide a reliable public callback for screenshot events in this plugin, so event streams are mainly useful on iOS.
+
 ### iOS
 Apple does not allow apps to block screenshots. This package:
 - **Detects** screenshots via `UIApplication.userDidTakeScreenshotNotification`.
 - **Detects** screen recording via polling `UIScreen.main.isCaptured`.
 - **Blurs** the wrapped widget automatically while recording is active.
+
+Note: screenshot detection fires after the screenshot is taken, so screenshot blur is a post-capture visual response.
 
 ---
 
